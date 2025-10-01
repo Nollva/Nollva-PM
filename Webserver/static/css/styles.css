@@ -1,0 +1,88 @@
+
+:root {
+    /* Base Colors */
+    --main1: #222831;
+    --main2: #393E46;
+    --teal: #00ADB5;
+    --teal_hover: #007c82;
+    --light_gray: #EEEEEE;
+}
+
+a {
+    color: var(--teal);
+    font-family: "Josefin Sans", sans-serif;
+}
+
+a:hover {
+    color: var(--teal_hover);
+}
+
+.nav-link {
+    color: var(--teal);
+    font-family: "Josefin Sans", sans-serif;
+}
+
+.nav-link:hover {
+    color: var(--teal_hover);
+}
+
+
+body {
+    background-color: var(--main1);
+    color: var(--light_gray);
+    font-family: "Josefin Sans", sans-serif;
+    height: 100vh;
+}
+
+p {
+    font-size: larger;
+    color: var(--light_gray)
+}
+
+.centered-div {
+    /* 1. Make it a flex container */
+    display: flex;
+
+    /* 2. Center items horizontally */
+    justify-content: center;
+
+    /* 3. Center items vertically */
+    align-items: center;
+
+    text-align: center;
+
+    /* Optional: If content should stack vertically */
+    flex-direction: column;
+
+    /* Required to demonstrate vertical centering */
+    height: 100vh; /* Example: full viewport height */
+}
+
+.login-div {
+    max-width: 25vw;
+    width: 100%;
+}
+
+.btn-primary {
+    color: var(--light_gray);
+    background-color: var(--teal);
+    border-color: var(--teal);
+}
+
+.btn-primary:hover {
+    color: var(--light_gray);
+    background-color: var(--teal_hover);
+    border-color: var(--teal_hover);
+}
+
+.btn-outline-secondary {
+    color: var(--light_gray);
+    background-color: transparent;
+    border-color: var(--light_gray);
+}
+
+.btn-outline-secondary:hover {
+    color: var(--main2);
+    background-color: var(--light_gray);
+    border-color: var(--light_gray);
+}

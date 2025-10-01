@@ -1,0 +1,7 @@
+# Python Virtual Environment Folder
+.venv/
+venv/
+env/
+
+# Environment Variables File
+.env

@@ -1,0 +1,29 @@
+{% extends "base_template.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+    <div class="centered-div">
+        <img draggable="false" class="d-block mx-auto mb-4" src="../static/assets/Transparent_NollvaPM_Logo.png" alt="" width="300" height="300" />
+
+        <div class="col-lg-8 mx-auto">
+            <h1 draggable="false" class="display-5 fw-bold">Nollva PM</h1>
+
+            <p class="mb-4">Your digital universe.<br>Secured by one.</p>
+
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="/login">
+                <button type="button" class="btn btn-primary btn-lg px-4 gap-3">
+                    Login
+                </button>
+                </a>
+                <a href="/signup">
+                <button type="button" class="btn btn-outline-light btn-lg px-4">
+                    Create Account
+                </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
