@@ -1,0 +1,577 @@
+{% extends "base_template.html" %} 
+{% block title %}Dashboard{% endblock %} 
+
+{% block content %}
+<div class="d-flex flex-row vh-100"> 
+
+    <div 
+      class="d-flex flex-column flex-shrink-0 py-3 sidebar"
+      id="sidebar-container"
+      style="background-color: var(--main3);" 
+    >
+
+    
+      <a
+        href="#"
+        id="sidebar-toggle" 
+        class="d-flex align-items-center pb-3 mb-3 text-white text-decoration-none border-bottom"
+      >
+        <img 
+            class="bi pe-none me-2" 
+            width="50" 
+            height="50" 
+            src="{{ url_for('static', filename='assets/Transparent_NollvaPM_Logo.png') }}" 
+            alt="Logo"
+        >
+        <span class="fs-5 fw-semibold sidebar-text">Dashboard</span> 
+      </a>
+
+      <ul class="nav nav-pills flex-column mb-auto p-0 m-0">
+    
+        <li>
+          <a href="{{ url_for('list_passwords') }}" 
+             id="default-load-link"
+             class="nav-link ajax-nav-link text-white d-flex align-items-center active" 
+             aria-current="page"
+             data-content-target="main-content-area">
+            <i class="bi bi-lock-fill me-3 fs-5"></i> <span class="sidebar-text">Passwords</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="{{ url_for('settings') }}" class="nav-link ajax-nav-link text-white d-flex align-items-center" data-content-target="main-content-area">
+           <i class="bi bi-gear-fill me-3 fs-5"></i> <span class="sidebar-text">Settings</span>
+          </a>
+        </li>
+
+<li>
+    <a href="{{ url_for('logout') }}" 
+       id="logout-link" 
+       class="nav-link ajax-nav-link text-white d-flex align-items-center">
+        <i class="bi bi-box-arrow-right me-3 fs-5"></i> 
+        <span class="sidebar-text">Sign Out</span>
+    </a>
+</li>
+        
+      </ul>
+
+      </div>
+    
+    <div class="flex-grow-1 main-content p-4" id="main-content-area" style="background-color: var(--secondary-bg);">
+        <h1 class="text-white">Main Content Area</h1>
+        <p class="text-white-50">Content will load here based on sidebar selection.</p>
+    </div>
+</div>
+
+<div class="modal fade" id="editPasswordModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: var(--main3); color: var(--light_gray);">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="editModalLabel">
+                    Edit Login: <span id="modal-service-name" style="color: var(--teal);"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+            
+            <form id="editPasswordForm">
+                <div class="modal-body">
+                    <input type="hidden" id="edit-record-id" name="id">
+                    
+                    <input type="hidden" id="original-service-name" name="original_service_name">
+
+                    <div class="mb-3">
+                        <label for="edit-service-name" class="form-label">Service/Site Name</label>
+                        <input type="text" class="form-control" id="edit-service-name" name="service_name" required 
+                               style="background-color: var(--main2); color: var(--light_gray); border-color: var(--main2);">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="edit-username" name="username" required
+                               style="background-color: var(--main2); color: var(--light_gray); border-color: var(--main2);">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="edit-password" name="password" required
+                               style="background-color: var(--main2); color: var(--light_gray); border-color: var(--main2);">
+                    </div>
+                </div>
+                
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: var(--teal); border-color: var(--teal);">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="masterPasswordModal" tabindex="-1" aria-labelledby="masterPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: var(--main3); color: var(--light_gray);">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="masterPasswordModalLabel">Change Master Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+            
+            <form id="masterPasswordForm">
+                <div class="modal-body">
+                    
+                    <div class="mb-3">
+                        <label for="old-password" class="form-label">Old Master Password</label>
+                        <input type="password" class="form-control" id="old-password" name="old_password" required
+                               style="background-color: var(--main2); color: var(--light_gray); border-color: var(--main2);">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="new-password" class="form-label">New Master Password</label>
+                        <input type="password" class="form-control" id="new-password" name="new_password" required
+                               style="background-color: var(--main2); color: var(--light_gray); border-color: var(--main2);">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirm-new-password" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm-new-password" name="confirm_new_password" required
+                               style="background-color: var(--main2); color: var(--light_gray); border-color: var(--main2);">
+                    </div>
+                </div>
+                
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="master-save-button" disabled style="background-color: var(--teal); border-color: var(--teal);">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar-container');
+        const toggleButton = document.getElementById('sidebar-toggle');
+        const contentArea = document.getElementById('main-content-area');
+        const navLinks = document.querySelectorAll('.ajax-nav-link');
+        const defaultLoadLink = document.getElementById('default-load-link'); 
+        
+        // --- Master Password Validation Elements ---
+        const masterForm = document.getElementById('masterPasswordForm');
+        const newPasswordField = document.getElementById('new-password');
+        const confirmNewPasswordField = document.getElementById('confirm-new-password');
+        const masterSaveButton = document.getElementById('master-save-button');
+
+
+        // --- Helper Functions (Defined within scope) ---
+        
+        // Function to prepare the modal for adding a new login
+        function prepareModalForCreation() {
+            // Use getOrCreateInstance
+            const modalElement = bootstrap.Modal.getOrCreateInstance(document.getElementById('editPasswordModal'));
+            const form = document.getElementById('editPasswordForm');
+        
+            form.reset(); 
+            document.getElementById('edit-record-id').value = ""; 
+            document.getElementById('original-service-name').value = "";
+
+            document.getElementById('editModalLabel').textContent = "Add New Login";
+            document.getElementById('modal-service-name').textContent = "";
+            form.querySelector('button[type="submit"]').textContent = "Create Login";
+
+            modalElement.show();
+        }
+
+        // Function to load data from button and open the Edit modal
+        function loadEditDataAndOpenModal(buttonElement) {
+            
+            const recordId = buttonElement.dataset.id;
+            const serviceName = buttonElement.dataset.service;
+            const username = buttonElement.dataset.username;
+            const password = buttonElement.dataset.password;
+            
+            if (!recordId) {
+                alert("Error: Cannot edit. Missing unique ID for this record.");
+                return;
+            }
+
+            const modalTitleSpan = document.getElementById('modal-service-name');
+            const modalLabel = document.getElementById('editModalLabel'); 
+            
+            // Use getOrCreateInstance
+            const modalElement = bootstrap.Modal.getOrCreateInstance(document.getElementById('editPasswordModal'));
+
+            if (modalLabel) {
+                modalLabel.textContent = "Edit Login:";
+            }
+            
+            if (modalTitleSpan) {
+                modalTitleSpan.textContent = serviceName;
+            }
+            
+            document.getElementById('editPasswordForm').reset();
+            document.getElementById('edit-record-id').value = recordId; 
+            document.getElementById('original-service-name').value = serviceName;
+
+            document.getElementById('edit-service-name').value = serviceName;
+            document.getElementById('edit-username').value = username;
+            document.getElementById('edit-password').value = password; 
+            
+            document.getElementById('editPasswordForm').querySelector('button[type="submit"]').textContent = "Save Changes";
+            
+            modalElement.show();
+        }
+
+        // Function to handle the AJAX action (Delete/Edit Save)
+        function handleRecordAction(action, id, serviceName, buttonElement) {
+            const endpoint = `/api/manage-login`;
+            
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    record_id: id,
+                    action: action,
+                    service_name: serviceName
+                })
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/login'; 
+                    throw new Error('Unauthorized'); 
+                }
+
+                if (!response.ok) {
+                    return response.json().catch(() => {
+                        throw new Error('Server error: ' + response.statusText);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    if (data.action === 'delete') {
+                        
+                        const cardCol = buttonElement.closest('.col');
+                        if (cardCol) {
+                            cardCol.style.opacity = 0;
+                            cardCol.style.transition = 'opacity 0.3s ease-out';
+                        }
+                    } 
+                    
+                    setTimeout(() => {
+                        const activeLink = document.querySelector('.ajax-nav-link.active');
+                        if (activeLink) {
+                            activeLink.click(); 
+                        }
+                        console.log(`Action (${data.action}) successful, refreshing content.`);
+
+                    }, 300); 
+
+                } else {
+                    alert(`Error: ${data.message || 'Operation failed.'}`);
+                    buttonElement.disabled = false;
+                    buttonElement.innerHTML = (action === 'delete' ? '<i class="bi bi-trash"></i> Delete' : '<i class="bi bi-pencil-square"></i> Edit');
+                }
+            })
+            .catch(error => {
+                if (error.message !== 'Unauthorized') {
+                    console.error('Action failed:', error);
+                    alert(`An error occurred during the action: ${error}`);
+                    buttonElement.disabled = false;
+                    buttonElement.innerHTML = (action === 'delete' ? '<i class="bi bi-trash"></i> Delete' : '<i class="bi bi-pencil-square"></i> Edit');
+                }
+            });
+        }
+        
+        // --- Master Password Validation Logic ---
+        function validateMasterPasswordFields() {
+            const newPass = newPasswordField.value;
+            const confirmPass = confirmNewPasswordField.value;
+            const oldPass = document.getElementById('old-password').value;
+            
+            const allFieldsFilled = oldPass.length > 0 && newPass.length > 0 && confirmPass.length > 0;
+            const passwordsMatch = newPass === confirmPass;
+
+            if (allFieldsFilled && passwordsMatch) {
+                masterSaveButton.disabled = false;
+                confirmNewPasswordField.setCustomValidity(""); 
+            } else {
+                masterSaveButton.disabled = true;
+                if (newPass.length > 0 && confirmPass.length > 0 && newPass !== confirmPass) {
+                    confirmNewPasswordField.setCustomValidity("New passwords must match.");
+                } else {
+                    confirmNewPasswordField.setCustomValidity("");
+                }
+            }
+        }
+        
+        // Attach validation to input events
+        if (masterForm) {
+            masterForm.addEventListener('keyup', validateMasterPasswordFields);
+            masterForm.addEventListener('change', validateMasterPasswordFields);
+        }
+
+        // ----------------------------------------------------------------------
+        // --- Core Event Listeners ---
+        // ----------------------------------------------------------------------
+        
+        // --- Sidebar Toggle Logic (REMOVED LOCAL STORAGE SAVE) ---
+        toggleButton.addEventListener('click', function(e) {
+            e.preventDefault(); 
+            sidebar.classList.toggle('collapsed');
+            // localStorage.setItem is removed here
+        });
+        
+        // ----------------------------------------------------------------------
+        // --- Sidebar Initialization Logic (Mobile Default ONLY) ---
+        // ----------------------------------------------------------------------
+        const MOBILE_BREAKPOINT = 992; // Default to collapsed on screens < 992px
+
+        function initializeSidebarState() {
+            const isMobileDevice = window.innerWidth < MOBILE_BREAKPOINT;
+            
+            // Checks screen width ONLY. No localStorage used.
+            if (isMobileDevice) {
+                // Default to collapsed for small screens
+                sidebar.classList.add('collapsed');
+            } else {
+                // Default to expanded for large screens
+                sidebar.classList.remove('collapsed');
+            }
+        }
+        
+        // 🚨 CRITICAL: Call the function to set the initial state 🚨
+        initializeSidebarState();
+
+
+        // --- AJAX Navigation Logic (Sidebar Clicks) ---
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault(); 
+                const url = this.getAttribute('href');
+                
+                fetch(url, {
+                    headers: { 'X-Requested-Content': 'true' }
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = '/login'; 
+                        throw new Error('Unauthorized'); 
+                    }
+
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    contentArea.innerHTML = html;
+                    history.pushState(null, '', url);
+
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                })
+                .catch(error => {
+                    if (error.message !== 'Unauthorized') {
+                        console.error('Error loading content:', error);
+                    }
+                });
+            });
+        });
+
+
+        // ----------------------------------------------------------------------
+        // --- Event Delegation (Handles all dynamic content) ---
+        // ----------------------------------------------------------------------
+        
+        document.addEventListener('click', function(e) {
+            
+            // --- 1. HANDLE PASSWORD TOGGLE ---
+            if (e.target.classList.contains('password-toggle') || e.target.closest('.password-toggle')) {
+                const toggleElement = e.target.closest('.password-toggle');
+                
+                const targetId = toggleElement.dataset.passwordTarget;
+                const passwordValue = toggleElement.dataset.passwordValue;
+                const targetSpan = document.querySelector(targetId);
+
+                if (targetSpan.textContent.trim() === '●●●●●●●●●●') { 
+                    targetSpan.textContent = passwordValue;
+                    toggleElement.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+                } else {
+                    targetSpan.textContent = '●●●●●●●●●●';
+                    toggleElement.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+                }
+            }
+            
+            // --- 2. HANDLE COPY BUTTONS ---
+            if (e.target.classList.contains('copy-button') || e.target.closest('.copy-button')) {
+                const copyButton = e.target.closest('.copy-button');
+                const valueToCopy = copyButton.dataset.copyTarget;
+                
+                navigator.clipboard.writeText(valueToCopy).then(() => {
+                    const originalText = copyButton.innerHTML;
+                    copyButton.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+                    setTimeout(() => {
+                        copyButton.innerHTML = originalText;
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                });
+            }
+
+            // --- 3. HANDLE EDIT/DELETE ACTION BUTTONS ---
+            const actionButton = e.target.closest('.action-button');
+            
+            if (actionButton) {
+                e.preventDefault();
+
+                const action = actionButton.dataset.action;
+                const recordId = actionButton.dataset.id;
+                const serviceName = actionButton.dataset.service; 
+                
+                if (action === 'delete') {
+                    if (confirm(`Are you sure you want to permanently delete the login for: ${serviceName}?`)) {
+                        handleRecordAction(action, recordId, serviceName, actionButton);
+                    }
+                } else if (action === 'edit') {
+                    loadEditDataAndOpenModal(actionButton);
+                }
+            }
+
+            // 🚨 NEW HANDLER: Master Password Button (Triggers the modal) 🚨
+            if (e.target.id === 'change-master-password-button' || e.target.closest('#change-master-password-button')) {
+                e.preventDefault();
+                document.getElementById('masterPasswordForm').reset();
+                const masterModalElement = bootstrap.Modal.getOrCreateInstance(document.getElementById('masterPasswordModal'));
+                
+                masterSaveButton.disabled = true;
+                validateMasterPasswordFields(); 
+                
+                masterModalElement.show();
+            }
+            
+            // HANDLER: For the 'Add New Login' button 
+            if (e.target.id === 'add-login-button' || e.target.closest('#add-login-button')) {
+                 e.preventDefault();
+                 prepareModalForCreation();
+            }
+
+            // LOGOUT HANDLER: Forcing full redirect 
+            if (e.target.id === 'logout-link' || e.target.closest('#logout-link')) {
+                const logoutLink = e.target.closest('#logout-link');
+                e.preventDefault(); 
+                
+                window.location.href = logoutLink.getAttribute('href');
+            }
+        });
+
+
+        // --- Handle Modal Form Submission (Save Changes/Create Login) ---
+        document.getElementById('editPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const payload = Object.fromEntries(formData);
+            
+            const isNewRecord = (payload.id === '0' || payload.id === '');
+            payload.action = isNewRecord ? 'create' : 'update';
+            
+            const modalElement = bootstrap.Modal.getOrCreateInstance(document.getElementById('editPasswordModal'));
+            const saveButton = form.querySelector('button[type="submit"]');
+
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            fetch('/api/manage-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    
+                    modalElement.hide(); 
+                    
+                    setTimeout(() => {
+                        const activeLink = document.querySelector('.ajax-nav-link.active');
+                        if (activeLink) {
+                            activeLink.click(); 
+                        }
+                        console.log(`${payload.action} successful, refreshing content.`);
+                    }, 100); 
+
+                } else {
+                    alert(`Save failed: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Submission failed:', error);
+                alert(`An error occurred during save: ${error}`);
+            })
+            .finally(() => {
+                saveButton.disabled = false;
+                saveButton.textContent = isNewRecord ? 'Create Login' : 'Save Changes';
+            });
+        });
+
+        // 🚨 NEW HANDLER: Master Password Form Submission 🚨
+        document.getElementById('masterPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const payload = Object.fromEntries(formData);
+
+            const masterModalElement = bootstrap.Modal.getInstance(document.getElementById('masterPasswordModal'));
+            const saveButton = form.querySelector('button[type="submit"]');
+
+            if (payload.new_password !== payload.confirm_new_password) {
+                alert("Error: New password and confirmation do not match.");
+                return;
+            }
+            
+            saveButton.disabled = true;
+            saveButton.textContent = 'Updating...';
+
+            fetch('/api/change-master-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (response.status === 401) { window.location.href = '/login'; throw new Error('Unauthorized'); }
+                if (!response.ok) { return response.json().catch(() => { throw new Error('Server error'); }); }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    masterModalElement.hide();
+                    alert("Success! Your Master Password has been changed.");
+                } else {
+                    alert(`Password Update Failed: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Password change error:', error);
+                alert('An unexpected error occurred during the update.');
+            })
+            .finally(() => {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Update Password';
+            });
+        });
+        
+        // 🚨 FINAL FIX: AUTO-LOAD THE PASSWORDS CONTENT ON DASHBOARD LOAD 🚨
+        if (defaultLoadLink) {
+            defaultLoadLink.click();
+        }
+    });
+</script>
+
+
+{% endblock %}

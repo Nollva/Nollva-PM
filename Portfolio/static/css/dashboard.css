@@ -1,0 +1,111 @@
+/* --- Custom Variables (Use these colors for your dark theme) --- */
+:root {
+    /* Base Colors */
+    --main1: #222831;
+    --main2: #393E46;
+    --main3: #2C323B;
+    --teal: #00ADB5;
+    --teal_hover: #007c82;
+    --teal_pressed: rgb(0, 75, 79);
+    --light_gray: #EEEEEE;
+}
+
+/* --- Sidebar Collapse CSS --- */
+.sidebar {
+    /* ... existing styles ... */
+    transition: width 0.5s ease;
+    flex-shrink: 0;
+    min-height: 100vh;
+}
+
+/* Collapsed state styles */
+.sidebar.collapsed {
+    width: 65px !important; /* The new, collapsed width (just enough for icons) */
+
+    align-items: center !important;
+}
+
+/* Hide text elements when sidebar is collapsed */
+.sidebar.collapsed .sidebar-text,
+.sidebar.collapsed .dropdown-toggle::after { 
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/*
+CRITICAL: Targeting the List Item (li)
+Bootstrap often puts padding on the li, which shifts the item.
+We need to zero it out and center the link itself.
+*/
+.sidebar.collapsed .nav-item {
+    width: 100%;
+    /* 🚨 Zero out any padding/margin added by Bootstrap's flex-column/nav-item */
+    padding: 0 !important; 
+    margin: 0 !important;
+    
+    /* Ensure the list item is a flex container to fully center its child link */
+    display: flex;
+    justify-content: center; /* Center the link horizontally */
+    align-items: center;    /* Center the link vertically */
+}
+
+
+/*
+CRITICAL: Targeting the Navigation Link (a)
+Zero out the default horizontal padding (px-3/p-3) and ensure the icon is centered inside the box.
+*/
+.sidebar.collapsed .nav-link {
+    /* 🚨 Enforce internal flex centering */
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: center !important;
+    
+    /* 🚨 CRITICAL: Zero out all spacing again on the link itself */
+    padding: 0 !important; 
+    margin: 0.5rem 0 !important; /* Keep vertical margin for spacing, zero horizontal */
+    
+    /* Enforce size */
+    width: 50px !important;
+    height: 50px !important;
+
+    /* The original background-color was 'grey'—you may want a transparent or specific color */
+    background-color: transparent; 
+}
+
+/*
+CRITICAL: Targeting the Icon (i)
+Remove the residual right margin (me-3) applied when the text was present.
+*/
+.sidebar.collapsed .nav-link i {
+    /* The me-3 (margin-right: 3) from expanded state must be reset here. */
+    margin: 0 !important;
+    /* Ensure the icon itself doesn't have alignment issues */
+    line-height: 1; 
+}
+
+/* Ensure active/hover links look right */
+.nav-link.active {
+    background-color: #00bcd4 !important;
+}
+
+/* --- Fix the Active Link Styling (The Square) --- */
+.sidebar.collapsed .nav-link.active {
+    /* Re-enforce the size and padding removal */
+    width: 50px !important;
+    height: 50px !important;
+    padding: 0 !important; 
+    margin: 0.5rem 0 !important; /* Use 0.5rem top/bottom margin */
+
+    background-color: var(--active-link-color, #00bcd4) !important;
+    border-radius: 0.5rem !important; 
+    box-shadow: none !important; 
+    border: none !important;
+}
+
+/* Ensure the main content takes up the remaining space */
+.main-content {
+    background-color: var(--secondary-bg);
+    overflow-y: auto; /* Allow content scrolling */
+    width: 100%; /* Ensure it always takes remaining space */
+}

@@ -1,0 +1,48 @@
+{% extends "base_template.html" %}
+{% block title %}{% endblock %}
+
+{% block content %}
+<header class="jumbotron text-center bg-primary text-white mb-4">
+    <div class="container">
+        <h1 class="display-4">👋 Hi, I'm [Your Name]</h1>
+        <p class="lead">Web Developer | Designer | Coder</p>
+        <hr class="my-4 bg-light">
+        <p>A collection of my work, passion projects, and professional experience.</p>
+        <a class="btn btn-light btn-lg" href="#contact" role="button">Get In Touch</a>
+    </div>
+</header>
+
+<div class="container my-5">
+    <h2 class="text-center mb-4">Featured Projects</h2>
+    <div class="row" data-masonry='{"percentPosition": true }'>
+        
+        {% for item in portfolio_items %}
+        <div class="col-sm-6 col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-primary">{{ item.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ item.category }}</h6>
+                    <p class="card-text">{{ item.description | truncate(100) }}</p>
+                    <div class="mt-auto">
+                        <span class="badge bg-secondary text-white">{{ item.date }}</span>
+                        <a href="{{ item.link }}" class="btn btn-sm btn-outline-primary mt-2 float-end" target="_blank" rel="noopener noreferrer">View Project &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-center w-100">No portfolio items found yet. Check back soon!</p>
+        {% endfor %}
+
+    </div>
+</div>
+
+<footer id="contact" class="text-center py-4 bg-dark text-white">
+    <p>&copy; {{ moment().format('YYYY') }} [Your Name]. All rights reserved.</p>
+    <p>
+        <a href="mailto:[Your Email]" class="text-white mx-2">Email</a> | 
+        <a href="[Your LinkedIn URL]" target="_blank" class="text-white mx-2">LinkedIn</a> |
+        <a href="[Your GitHub URL]" target="_blank" class="text-white mx-2">GitHub</a>
+    </p>
+</footer>
+{% endblock %}

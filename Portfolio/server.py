@@ -379,5 +379,5 @@ def handle_rate_limit_exceeded(e):
 
 
 # If running in the code editor, run the application.
-if __name__ == "__main__":
-    app.run(debug=True)
+# if __name__ == "__main__":
+#     app.run(debug=True)

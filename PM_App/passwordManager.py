@@ -1,11 +1,28 @@
 import hashlib
 from user import User
 from hashify import hashify
-import json
 import os
+from dotenv import load_dotenv
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 from cryptography.fernet import Fernet
 import base64
-db_file = './db.json'
+
+# Load the .env file.
+load_dotenv()
+
+# Get the URI from the .env environment variable.
+uri = os.environ.get("DB_URI")
+
+# Start the Database connection.
+dbclient = MongoClient(uri, server_api=ServerApi('1'))
+
+# locate the database inside of the organization.
+database = dbclient.get_database("Users")
+
+# Locate the database collection the app is using.
+users = database.get_collection("users")
+
 
 class PasswordManager:
     '''Runs the main Password Manager operations, logging in decrypting all of the keys, and such.'''
@@ -14,41 +31,43 @@ class PasswordManager:
     def __init__(self):
         self.logged_in = False
 
-        if not os.path.exists(db_file):
-            # Create an empty database file if it doesn't exist.
-            with open(db_file, 'w') as f:
-                json.dump({}, f)
-
-        try:
-            # Open up the database file when the password manager file is open.
-            with open(db_file, 'r') as db:     
-                self.data = json.load(db)
-
-        except:
-            self.data= {
-
-            }
-
 
 
     def save_data(self):
-        '''Saves the current self.data dictionary to the JSON database file.'''
+        '''Saves the in-memory dduser's document in the database'''
         try:
-            # Write out the user data to the in-memory data.
-            self.data[self.user_object.username] = self.user_object.write_out()
+            # Prepare the document data and the filter
+            document_data = self.user_object.to_mongo_document()
+            query_filter = {"user": self.user_object.username}
+            
+            # 2. Wrap the document data in the $set operator
+            update_operation = {"$set": document_data}
 
-            # Open the file in write mode and dump the in-memory data into the file.
-            with open(db_file, 'w') as f:
-                json.dump(self.data, f, indent=4)
+
+            # Attempt to insert or update a database document for the user.
+            users.update_one(filter=query_filter, update=update_operation, upsert=True)
+
             print("Data saved successfully.")
-        except IOError as e:
-            print(f"Error saving data: {e}")
+        except:
+            print(f"Error saving data:")
+
+    def _check_user_(self, username:str):
+        '''Checks the DB for a user document.'''
+        query = {"username": username}
+        user = users.find_one(filter=query)
+        
+        if user:
+            return User.from_mongo_document(user)
+        
+        else:
+            return False
 
     def create_account (self, username:str, password1:str, password2:str):
             # Convert the username to the global setting of all lowercase.
             lower_username = username.lower()
+
             # If the username entered is already an account, return.
-            if lower_username in self.data:
+            if self._check_user_(lower_username):
                 return "Username already in use."
                 
 
@@ -65,7 +84,7 @@ class PasswordManager:
                     salt, hashed_password = hashify(password=bytes_password)
 
                     # Create the user object.
-                    self.user_object = User(username=lower_username, salt=salt.hex(), hashed_password=hashed_password.hex())
+                    self.user_object = User(username=lower_username, salt=salt, hashed_password=hashed_password)
                     self.logged_in = True
                     # Perform a KDF Key Dirrivitive Function to derive the special key that encrypts all of the passwords.
                     self.encryption_key = base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(hash_name="sha256", password=bytes_password, salt=salt, iterations=100_000))
@@ -90,17 +109,19 @@ class PasswordManager:
         lower_username = username.lower()
 
         # If there is a user by that username
-        if lower_username in self.data:
-            user = self.data[lower_username]
-            
+        user = self._check_user_(lower_username)
+        if user:
+
             # Find the Salt and Hashed Master Password
-            salt = bytes.fromhex(user['auth_salt'])
+            salt = user.salt
             
-            hashed_password = bytes.fromhex(user['hashed_master_password'])
+            hashed_password = user.hashed_password
+
+            salt2, hashpass2 = hashify(password=bytes_password, salt=salt)
 
             # Confirm that the entered password hash matches the hashed password.
             if hashify(password=bytes_password, salt=salt)[1] == hashed_password:
-                self.user_object = User(username=lower_username, data=user)
+                self.user_object = user
                 self.logged_in = True   
                 print("You are logged in")
                 
@@ -109,7 +130,6 @@ class PasswordManager:
 
             else: 
                 return "The entered password does not match the hashed password."
-                # print("The entered password does not match the hashed password.")
 
         # If user is not found, do this.
         else:
@@ -127,8 +147,8 @@ class PasswordManager:
             else:
                 f = Fernet(new_encryption_key)
 
-            # Converts the password from readable text to UTF-8 bytes, then encrypts the password using Fernet, and finally converts the bytes to hexedecimal to be safely saved as a json.
-            encrypted_password = f.encrypt(service_password.encode(encoding="utf-8")).hex()
+            # Converts the password from readable text to UTF-8 bytes, then encrypts the password using Fernet.
+            encrypted_password = f.encrypt(service_password.encode(encoding="utf-8"))
             
             # Activates the new_save function in the User class so that the save_data will save everything properly.
             self.user_object.new_save(service_name, service_username, encrypted_password)
@@ -149,14 +169,11 @@ class PasswordManager:
                 # Gets the service username and encrypted password from the db if the service_name is in the database.
                 service_username, encrypted_password = self.user_object.get_save(service=service_name)
 
-                # Converts the hexadecimal encrypted password into it's original bytes form.
-                bytes_encrypted_password = (bytes.fromhex(encrypted_password))
-
                 # Sets the encryption key in Fernet
                 f = Fernet(self.encryption_key)
                 
                 # Decrypts the encrypted password and converts the UTF-8 bytes to readable text.
-                decrypted_password = f.decrypt(bytes_encrypted_password).decode(encoding="utf-8")
+                decrypted_password = f.decrypt(encrypted_password).decode(encoding="utf-8")
 
                 # Prints the information out and returns it as usable variables.
                 if print_out:
@@ -201,10 +218,10 @@ class PasswordManager:
         if self.logged_in:
 
             bytes_old_password = old_password.encode(encoding="utf-8")
-            bytes_salt = bytes.fromhex(self.user_object.salt) # type: ignore
+            bytes_salt = self.user_object.salt # type: ignore
 
             # If the old password hash matches the user account's master password hash.
-            if hashify(password=bytes_old_password, salt=bytes_salt)[1] == bytes.fromhex(self.user_object.hashed_password): # type: ignore
+            if hashify(password=bytes_old_password, salt=bytes_salt)[1] == self.user_object.hashed_password: # type: ignore
 
                 # If the new passwords entered are the same.
                 if new_password == new_password1:
@@ -222,8 +239,8 @@ class PasswordManager:
                         service_username, service_password = self.get_save(service_name, print_out=False) # type: ignore
                         self.new_save(service_name, service_username, service_password, new_encryption_key, save_data=False)
 
-                    self.user_object.hashed_password = new_password_hash.hex()
-                    self.user_object.salt = new_salt.hex()
+                    self.user_object.hashed_password = new_password_hash
+                    self.user_object.salt = new_salt
                     self.encryption_key = new_encryption_key
                     self.save_data()
 
@@ -245,7 +262,7 @@ class PasswordManager:
     def logout(self):
         '''Logs out, performs a save data, and wipes the user_object and encryption keys.'''
         self.save_data()
-        self.user_object = User(username="", salt="", hashed_password="")
+        self.user_object = User(username="", salt=b"", hashed_password=b"")
         self.encryption_key = b""
         self.logged_in = False
 

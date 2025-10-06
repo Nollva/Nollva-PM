@@ -1,0 +1,184 @@
+/* --- Custom Variables (Use these colors for your dark theme) --- */
+:root {
+    /* Base Colors */
+    --main1: #222831;
+    --main2: #393E46;
+    --main3: #2C323B;
+    --teal: #00ADB5;
+    --teal_hover: #007c82;
+    --teal_pressed: rgb(0, 75, 79);
+    --light_gray: #EEEEEE;
+}
+
+/* --- Sidebar Base Styles --- */
+.sidebar {
+    background-color: var(--main3);
+    width: 280px; /* Expanded width (Desktop/Tablet default) */
+    transition: width 0.5s ease;
+    flex-shrink: 0;
+    min-height: 100vh;
+}
+
+/* Collapsed state styles */
+.sidebar.collapsed {
+    width: 65px !important; 
+    align-items: center !important;
+}
+
+/* Hide text elements when sidebar is collapsed */
+.sidebar.collapsed .sidebar-text,
+.sidebar.collapsed .dropdown-toggle::after { 
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* Fix collapsed list item layout */
+.sidebar.collapsed .nav-item {
+    width: 100%;
+    padding: 0 !important; 
+    margin: 0 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Fix collapsed navigation link layout (icon square) */
+.sidebar.collapsed .nav-link {
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: center !important;
+    padding: 0 !important; 
+    margin: 0.5rem 0 !important;
+    width: 50px !important;
+    height: 50px !important;
+    background-color: transparent; 
+}
+
+/* Fix icon margin inside collapsed link */
+.sidebar.collapsed .nav-link i {
+    margin: 0 !important;
+    line-height: 1; 
+}
+
+/* Fix active link styling */
+.nav-link.active {
+    background-color: #00bcd4 !important;
+}
+
+.sidebar.collapsed .nav-link.active {
+    width: 50px !important;
+    height: 50px !important;
+    padding: 0 !important; 
+    margin: 0.5rem 0 !important;
+    background-color: var(--active-link-color, #00bcd4) !important;
+    border-radius: 0.5rem !important; 
+    box-shadow: none !important; 
+    border: none !important;
+}
+
+/* Ensure the main content takes up the remaining space */
+.main-content {
+    background-color: var(--secondary-bg);
+    overflow-y: auto;
+    width: 100%;
+    transition: margin-left 0.5s ease, padding-left 0.5s ease;
+}
+
+/* Fixes for Long Card Titles (Service Name Wrapping) */
+.card-title-container {
+    /* CRITICAL: Allows the text container to grow and use remaining space */
+    flex-grow: 1 !important; 
+    flex-shrink: 1 !important; 
+    min-width: 0 !important; 
+    
+    /* Ensure the title wraps */
+    white-space: normal !important; 
+    word-break: break-word !important; 
+    
+    /* Add bottom margin so the wrapping text doesn't touch the buttons below */
+    margin-bottom: 0.5rem; 
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* --- Desktop/Larger Tablet Layout (Min Width 992px) --- */
+/* ---------------------------------------------------------------------- */
+
+@media (min-width: 992px) {
+    
+    /* FIX: When sidebar is collapsed, push the content over by padding */
+    .sidebar.collapsed ~ .main-content {
+        /* Padding is visually added to clear the 65px icon bar. */
+        padding-left: 80px !important; 
+        /* CRITICAL: Ensure NO margin is added, as Flexbox handles the separation. */
+        margin-left: 0 !important; 
+        transition: padding-left 0.5s ease;
+    }
+
+    /* When the sidebar is expanded, reset spacing to the standard p-4 (1.5rem) */
+    .sidebar:not(.collapsed) ~ .main-content {
+        padding-left: 1.5rem !important; 
+        margin-left: 0 !important;
+        transition: padding-left 0.5s ease;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* --- Mobile Layout (Max Width 991.98px) --- */
+/* ---------------------------------------------------------------------- */
+
+@media (max-width: 991.98px) {
+    
+    /* Small screen heading size adjustment */
+    .main-content h1 {
+        font-size: 1.75rem;
+    }
+
+    /* 1. Sidebar is an OVERLAY when Expanded */
+    .sidebar:not(.collapsed) {
+        position: fixed; 
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1050; 
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5); 
+        background-color: var(--main3) !important;
+    }
+
+    /* 2. Sidebar is a fixed ICON BAR when COLLAPSED */
+    .sidebar.collapsed {
+        position: fixed !important; 
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1050;
+        width: 65px !important;
+        box-shadow: none; 
+    }
+    
+    /* 3. SHIFT MAIN CONTENT WHEN SIDEBAR IS COLLAPSED (Mobile Fix) */
+    .sidebar.collapsed ~ .main-content {
+        /* Pushes the main content body over by 65px to clear the fixed sidebar icons */
+        margin-left: 65px !important; 
+        /* Ensures the content area only takes up the remaining space */
+        width: calc(100% - 65px); 
+        padding-left: 1rem !important; 
+        transition: margin-left 0.5s ease;
+    }
+
+    /* 4. FULL WIDTH MAIN CONTENT WHEN SIDEBAR IS EXPANDED (Behind Overlay) */
+    .sidebar:not(.collapsed) ~ .main-content {
+        /* When the sidebar is expanded (overlay), the main content must take full width and stay put */
+        margin-left: 0 !important;
+        width: 100%;
+        /* Ensure padding is consistent for full-width view */
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}

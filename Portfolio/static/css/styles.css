@@ -60,17 +60,8 @@ p {
 }
 
 .login-div {
-    /* Remove 'max-width: 25vw;' for a better experience on small devices. */
-    /* If you MUST constrain it, use a percentage width, or only apply max-width on larger screens via a media query. */
-    width: 90%; /* Let it take most of the screen on mobile */
-    max-width: 400px; /* Optional: Sets a practical maximum for the login form */
-}
-
-@media (min-width: 992px) {
-    /* Apply a smaller max-width only for large screens (desktops) */
-    .login-div {
-        max-width: 450px; /* Adjust as needed for desktop */
-    }
+    max-width: 25vw;
+    width: 100%;
 }
 
 .btn-primary {
