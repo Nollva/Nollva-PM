@@ -1,21 +1,22 @@
-# wsgi.py
+#!/usr/bin/python3
 import sys
+import site
 import os
+from dotenv import load_dotenv # <-- NEW IMPORT
 
-# 🚨 CRITICAL FIX: HARDCODE CONFIGURATION HERE 🚨
-# This bypasses the need for the missing 'dotenv' package.
+# --- Load Environment Variables FIRST ---
+# Define the path to your .env file
+dotenv_path = '/opt/Nollva_PM_App/.env'
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
-# 3. FLASK_ENV (Required)
-os.environ['FLASK_ENV'] = 'production'
+# --- VIRTUAL ENVIRONMENT ACTIVATION ---
+# Get the path to your venv's site-packages directory
+# Adjust python3.X to your exact Python version (e.g., python3.13)
+site.addsitedir('/opt/Nollva_PM_App/.venv/lib/python3.13/site-packages')
 
-# 🚨 FIX 1: Add the project root directory
-# This ensures Python can find 'server.py'
-sys.path.insert(0, os.path.dirname(__file__))
+# Add your application directory to the Python path
+sys.path.insert(0, '/opt/Nollva_PM_App')
 
-# 🚨 FIX 2: FORCE ADD the virtual environment's site-packages path 🚨
-# This ensures Python can find 'flask' and all other installed modules (like 'python-dotenv')
-sys.path.insert(0, '/volume1/web/PM Web App/venv/lib/python3.8/site-packages')
-
-
-# Import your Flask app instance (This is the final line)
+# Import the main Flask object (it's named 'app' inside 'server.py')
 from server import app as application

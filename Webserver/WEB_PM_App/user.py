@@ -48,7 +48,7 @@ class User:
 
 
 
-    def new_save(self, service_name: str, service_username:str ,encrypted_password: bytes):
+    def new_save(self, service_name: str, service_username:bytes ,encrypted_password: bytes):
         '''Adds an username and encrypted password to the user's data.'''
         self.passwords[service_name] = {
             "username" : service_username,
@@ -63,7 +63,7 @@ class User:
     def get_save(self, service: str):
         '''Retrieves an username and encrypted password from the user's data.'''
         temp_dict = self.passwords.get(service, {})
-        service_username = temp_dict.get("username", "")
+        service_username = temp_dict.get("username", b"")
         encrypted_password = temp_dict.get("encrypted_password", b"")
         return service_username, encrypted_password
 

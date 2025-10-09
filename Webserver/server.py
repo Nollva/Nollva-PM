@@ -2,31 +2,11 @@ from flask import Flask, render_template, url_for, request, session, redirect, j
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_limiter.errors import RateLimitExceeded
-from dotenv import load_dotenv
 import os
 from WEB_PM_App.passwordManager import PasswordManager
+from WEB_PM_App.passwordGenerator import generate_secure_password # <-- RE-ADDED
 from functools import wraps
 from datetime import timedelta
-# server.py (Add this near the top)
-import logging
-import traceback
-import sys
-
-# Define the absolute path for your log file (MAKE SURE THIS DIRECTORY IS WRITEABLE)
-LOG_FILE = '/volume1/log/web/error.log' 
-
-# 🚨 This handler catches ALL Python exceptions during app startup 🚨
-def log_startup_error(exc_type, exc_value, exc_traceback):
-    with open(LOG_FILE, 'a') as f:
-        f.write("--- CRASH REPORT ---\n")
-        f.write(f"Type: {exc_type.__name__}\n")
-        f.write(f"Value: {exc_value}\n")
-        traceback.print_tb(exc_traceback, file=f)
-        f.write("--------------------\n")
-
-sys.excepthook = log_startup_error 
-
-
 
 
 # Create the login_required function to properly check if certain functions are logged in or not.
@@ -40,8 +20,6 @@ def login_required(f):
             if request.headers.get('X-Requested-Content') == 'true':
                 
                 # For AJAX requests, return a 401 status code.
-                # This prevents the content from loading and signals to the JS to reload the page.
-                # Use jsonify to ensure the body is valid JSON, though the status code is the key.
                 return jsonify({"error": "Unauthorized"}), 401 
             
             else:
@@ -52,9 +30,6 @@ def login_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
-
-# Load variables from the .env file.
-load_dotenv()
 
 # Create the Password Manager Instance.
 pm = PasswordManager()
@@ -286,6 +261,24 @@ def manage_login():
         return jsonify({"success": False, "message": "Server error."}), 500
 
 
+@app.route('/api/generate-password', methods=['GET'])
+@login_required
+def generate_password_route():
+    # Only authenticated users should be able to generate passwords
+    if not session.get("logged_in"):
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    try:
+        # Call the generator function (Using a default length of 16)
+        new_password = generate_secure_password(length=20) 
+        
+        # Return the generated password as a JSON response
+        return jsonify({"success": True, "password": new_password})
+
+    except Exception as e:
+        print(f"Password Generation Error: {e}")
+        return jsonify({"success": False, "message": "Failed to generate password due to server issue."}), 500
+
 
 @app.route('/api/change-master-password', methods=['POST'])
 @login_required
@@ -298,7 +291,7 @@ def change_master_password_route():
     
     old_password = data.get('old_password')
     new_password = data.get('new_password')
-    confirm_new_password = data.get('confirm_new_password') # Received but handled client-side
+    confirm_new_password = data.get('confirm_new_password')
     
     username = session.get("username", "")
     encryption_key = session.get("encryption_key_b64", "")
@@ -309,23 +302,22 @@ def change_master_password_route():
         
         # 4. Return Final Response
         if success == "Master Password Changed.":
-            # The session update happens inside the manager function (see Step 1)
+            # Update the session with the new encryption key for future operations
             session["encryption_key_b64"] = new_encryption_key
-            return jsonify({"success": True})
+            return jsonify({"success": True, "message": "Master Password Changed Successfully."})
         
-        elif success == "Master Password Reset Failed: Please check your inputs and try again.":
-            return jsonify({"success": False, "message": success})
+        # If the manager returned a specific error message string
+        elif isinstance(success, str):
+            # This handles incorrect password, passwords not matching, or user not found errors
+            return jsonify({"success": False, "message": success}), 400
         
         else:
-            # Failure (e.g., incorrect old password, re-encryption error)
-            return jsonify({"success": False}), 400
+            # Catch-all for unexpected manager failure
+            return jsonify({"success": False, "message": "An unknown error occurred during password change."}), 500
             
     except Exception as e:
         print(f"Master Password Update Error: {e}")
         return jsonify({"success": False, "message": "Internal server error. Check logs."}), 500
-
-
-
 
 
 # Handle rate limiting.
@@ -380,4 +372,4 @@ def handle_rate_limit_exceeded(e):
 
 # If running in the code editor, run the application.
 if __name__ == "__main__":
-    app.run(debug=True)
+   app.run(debug=True)

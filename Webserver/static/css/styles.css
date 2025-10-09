@@ -1,4 +1,3 @@
-
 :root {
     /* Base Colors */
     --main1: #222831;
@@ -32,82 +31,251 @@ body {
     background-color: var(--main1);
     color: var(--light_gray);
     font-family: "Josefin Sans", sans-serif;
-    height: 100vh;
+    margin: 0;
+}
+
+h1, h2, h3, h4 {
+    color: var(--light_gray);
+    font-weight: bold;
 }
 
 p {
-    font-size: larger;
-    color: var(--light_gray)
+    font-size: 1.1rem;
+    color: var(--light_gray);
 }
 
+.lead {
+    font-size: 1.3rem; 
+    line-height: 1.7;
+    font-weight: 300;
+}
+
+/* === ORIGINAL CENTERING CLASS (for use on other pages) === */
 .centered-div {
-    /* 1. Make it a flex container */
     display: flex;
-
-    /* 2. Center items horizontally */
     justify-content: center;
-
-    /* 3. Center items vertically */
     align-items: center;
-
     text-align: center;
-
-    /* Optional: If content should stack vertically */
     flex-direction: column;
+    height: 100vh; 
+}
 
-    /* Required to demonstrate vertical centering */
-    height: 100vh; /* Example: full viewport height */
+/* --- HERO SECTION STYLES --- */
+.hero-section {
+    background-color: var(--main1);
+    position: relative;
+    min-height: calc(100vh + 120px); 
+    margin-bottom: -120px; 
+    padding-bottom: 0; 
+}
+
+.hero-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; 
+    padding: 50px 20px;
+    padding-bottom: 50px; 
 }
 
 .login-div {
-    /* Remove 'max-width: 25vw;' for a better experience on small devices. */
-    /* If you MUST constrain it, use a percentage width, or only apply max-width on larger screens via a media query. */
-    width: 90%; /* Let it take most of the screen on mobile */
-    max-width: 400px; /* Optional: Sets a practical maximum for the login form */
+    width: 90%;
+    max-width: 400px;
 }
 
 @media (min-width: 992px) {
-    /* Apply a smaller max-width only for large screens (desktops) */
     .login-div {
-        max-width: 450px; /* Adjust as needed for desktop */
+        max-width: 450px;
     }
 }
 
+/* --- GLOBAL SECTION STYLES --- */
+
+.content-section {
+    padding: 100px 5%;
+    text-align: center;
+    position: relative; 
+    z-index: 1;
+}
+
+.bg-main2 {
+    background-color: var(--main3) !important;
+}
+
+/* --- WAVE DIVIDER STYLES (FINAL) --- */
+.wave-divider {
+    width: 100%;
+    height: 120px; 
+    display: block;
+    position: relative;
+    z-index: 100; 
+    line-height: 0;
+}
+
+.wave-divider svg {
+    display: block;
+    width: 100%;
+    height: 120px; 
+}
+
+.wave-divider.bottom-wave {
+    margin-top: -120px; 
+    transform: rotate(180deg); 
+    z-index: 100; 
+}
+
+.wave-divider.from-main1-to-main2 svg path {
+    fill: var(--main3); 
+}
+
+.wave-divider.from-main2-to-main1 svg path {
+    fill: var(--main1); 
+}
+
+
+/* --- SECURITY FEATURE BOX STYLES --- */
+.feature-box {
+    padding: 35px 20px;
+    border: 2px solid var(--teal);
+    border-radius: 8px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feature-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+.feature-box h3 {
+    color: var(--teal);
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.feature-box p {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* --- TUTORIAL SECTION STYLES (Icon Fix) --- */
+#tutorial {
+    padding-top: 170px; 
+    padding-bottom: 170px; 
+    background-color: var(--main1);
+}
+
+#tutorial .row {
+    margin-top: 50px;
+}
+
+#tutorial .col-md-4 {
+    text-align: left;
+    padding-bottom: 30px;
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    #tutorial .col-md-4:not(:last-child) {
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Base style for tutorial titles */
+#tutorial h3 {
+    color: var(--teal); 
+    font-size: 2.2rem; 
+    margin-bottom: 0.5rem;
+    
+    /* Ensure icon and text are aligned */
+    display: flex;
+    align-items: baseline; 
+}
+
+/* --- ICON CLUTTER FIX --- */
+#tutorial h3 i {
+    /* 1. Reduce the icon size from 2.2rem (inherited) */
+    font-size: 1.5rem; 
+    
+    /* 2. Increase the margin (default was 0.5rem) */
+    margin-right: 1rem !important; 
+    
+    flex-shrink: 0;
+}
+
+/* Specific adjustment for tablet view */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    #tutorial h3 {
+        font-size: 1.8rem; 
+    }
+    /* FURTHER ICON TWEAK for the tightest view (tablet) */
+    #tutorial h3 i {
+        font-size: 1.3rem; 
+        margin-right: 0.75rem !important; 
+    }
+}
+
+/* Restore size for large desktop */
+@media (min-width: 992px) {
+    #tutorial h3 {
+        font-size: 2.2rem; 
+    }
+    #tutorial h3 i {
+        /* Restore a larger icon size for large screens */
+        font-size: 1.8rem; 
+        margin-right: 1rem !important;
+    }
+}
+
+#tutorial p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* --- BUTTON STYLES (FINAL HIERARCHY) --- */
+
+/* NEW PRIMARY (formerly Warning) */
 .btn-primary {
-    color: var(--light_gray);
-    background-color: var(--teal);
+    color: var(--main3);
+    background-color: var(--teal); 
     border-color: var(--teal);
 }
 
 .btn-primary:hover {
-    color: var(--light_gray);
+    color: var(--main3);
     background-color: var(--teal_hover);
     border-color: var(--teal_hover);
 }
 
-.btn-primary:active, .btn-primary:active:focus {
-    background-color: var(--teal_pressed);
-    border-color: var(--teal_pressed);
-}
-
-.btn-primary.disabled, .btn-primary:disabled {
-    color: var(--light_gray);
-    background-color: var(--teal);
-    border-color: var(--teal)
-}
-
-.btn-outline-secondary {
+/* NEW WARNING (formerly Primary) */
+.btn-warning {
     color: var(--light_gray);
     background-color: transparent;
     border-color: var(--light_gray);
 }
 
-.btn-outline-secondary:hover {
+.btn-warning:hover {
     color: var(--main2);
     background-color: var(--light_gray);
     border-color: var(--light_gray);
 }
 
+.btn-outline-light {
+    color: var(--light_gray);
+    background-color: transparent;
+    border-color: var(--light_gray);
+}
+
+.btn-outline-light:hover {
+    color: var(--main2);
+    background-color: var(--light_gray);
+    border-color: var(--light_gray);
+}
 
 .sidebar {
     background-color: var(--main3);

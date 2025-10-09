@@ -93,8 +93,13 @@
 
                     <div class="mb-3">
                         <label for="edit-password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="edit-password" name="password" required
-                               style="background-color: var(--main2); color: var(--light_gray); border-color: var(--main2);">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="edit-password" name="password" required
+                                   style="background-color: var(--main2); color: var(--light_gray); border-color: var(--main2);">
+                            <button class="btn btn-outline-secondary" type="button" id="generate-password-button" style="border-color: var(--teal); color: var(--teal);">
+                                <i class="bi bi-shuffle"></i> Generate
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -177,6 +182,9 @@
             document.getElementById('editModalLabel').textContent = "Add New Login";
             document.getElementById('modal-service-name').textContent = "";
             form.querySelector('button[type="submit"]').textContent = "Create Login";
+            
+            // Ensures the password field is correct on creation
+            document.getElementById('edit-password').type = 'text';
 
             modalElement.show();
         }
@@ -214,6 +222,9 @@
 
             document.getElementById('edit-service-name').value = serviceName;
             document.getElementById('edit-username').value = username;
+            
+            // Set input type to text for visibility when editing/generating
+            document.getElementById('edit-password').type = 'text';
             document.getElementById('edit-password').value = password; 
             
             document.getElementById('editPasswordForm').querySelector('button[type="submit"]').textContent = "Save Changes";
@@ -382,6 +393,54 @@
             });
         });
 
+        // 🚨 NEW HANDLER: Generate Password Button Logic 🚨
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'generate-password-button' || e.target.closest('#generate-password-button')) {
+                e.preventDefault();
+                
+                const generateButton = e.target.closest('#generate-password-button');
+                const originalText = generateButton.innerHTML;
+                
+                // Disable the button and show a spinner while fetching
+                generateButton.disabled = true;
+                generateButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+
+                fetch('/api/generate-password', {
+                    method: 'GET',
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = '/login'; 
+                        throw new Error('Unauthorized'); 
+                    }
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success && data.password) {
+                        const passwordInput = document.getElementById('edit-password');
+                        // Update the password input field with the new password and ensure it's visible
+                        passwordInput.type = 'text'; 
+                        passwordInput.value = data.password;
+                    } else {
+                        alert('Could not generate password: ' + (data.message || 'Unknown error.'));
+                    }
+                })
+                .catch(error => {
+                    if (error.message !== 'Unauthorized') {
+                        console.error('Password generation failed:', error);
+                        alert('An error occurred during password generation.');
+                    }
+                })
+                .finally(() => {
+                    // Re-enable the button and restore its text
+                    generateButton.disabled = false;
+                    generateButton.innerHTML = originalText;
+                });
+            }
+        });
 
         // ----------------------------------------------------------------------
         // --- Event Delegation (Handles all dynamic content) ---
