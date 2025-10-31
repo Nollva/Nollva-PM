@@ -7,7 +7,7 @@ from pymongo.server_api import ServerApi
 from cryptography.fernet import Fernet
 import base64
 from typing import Optional # <-- ADDED for type hinting
-
+from .hashify import KDF_ITERATIONS # <-- NEW: Import KDF_ITERATIONS
 
 class PasswordManager:
     '''Runs the main Password Manager operations, logging in decrypting all of the keys, and such.'''
@@ -26,7 +26,7 @@ class PasswordManager:
         self.users = self.database.get_collection("users")
 
 
-
+    # ... (_check_user_ and save_data methods remain the same) ...
     def _check_user_(self, username:str) -> Optional[User]: # <-- UPDATED Type Hint
         '''Checks the DB for a user document.'''
         query = {"username": username.lower()}
@@ -77,13 +77,19 @@ class PasswordManager:
                     # Convert the password string to bytes at the earliest possible moment. 
                     bytes_password = password1.encode(encoding="utf-8")
 
-                    # Create the salt and hashed password. 
-                    salt, hashed_password = hashify(password=bytes_password)
+                    # Create the AUTH salt, hashed password, AND the ENCRYPTION salt. 
+                    auth_salt, hashed_password, encryption_salt = hashify(password=bytes_password) # <-- MODIFIED: capture all 3 returns
 
                     # Create the user object.
-                    user_object = User(username=lower_username, salt=salt, hashed_password=hashed_password)
+                    user_object = User(username=lower_username, salt=auth_salt, hashed_password=hashed_password, encryption_salt=encryption_salt) # <-- MODIFIED: pass encryption_salt
+                    
                     # Perform a KDF Key Dirrivitive Function to derive the special key that encrypts all of the passwords.
-                    encryption_key = base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(hash_name="sha256", password=bytes_password, salt=salt, iterations=250_000))
+                    # CRITICAL FIX: Use the new, SEPARATE encryption_salt for key derivation
+                    encryption_key = base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(
+                        hash_name="sha256", 
+                        password=bytes_password, 
+                        salt=encryption_salt, 
+                        iterations=KDF_ITERATIONS))
 
                     self.save_data(user_object)
                     
@@ -93,10 +99,6 @@ class PasswordManager:
 
                 else:
                     return "Account creation failed: Your passwords do not match."
-
-
-
-
 
 
     def login(self, username:str, password:str):
@@ -110,16 +112,22 @@ class PasswordManager:
         user = self._check_user_(lower_username)
         if user is not None: # <-- UPDATED check
 
-            # Find the Salt and Hashed Master Password
-            salt = user.salt
-            
+            # Find the Authentication Salt and Hashed Master Password
+            auth_salt = user.salt 
+            encryption_salt = user.encryption_salt # <-- NEW: Get the ENCRYPTION salt
             hashed_password = user.hashed_password
 
             # Confirm that the entered password hash matches the hashed password.
-            if hashify(password=bytes_password, salt=salt)[1] == hashed_password:
+            # We pass the existing auth_salt, but no enc_salt since we don't need to generate a new one.
+            if hashify(password=bytes_password, auth_salt=auth_salt)[1] == hashed_password:
                 
                 # Perform a KDF Key Dirrivitive Function to derive the special key that encrypts all of the passwords.
-                encryption_key = base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(hash_name="sha256", password=bytes_password, salt=salt, iterations=250_000))
+                # CRITICAL FIX: Use the stored encryption_salt for key derivation
+                encryption_key = base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(
+                    hash_name="sha256", 
+                    password=bytes_password, 
+                    salt=encryption_salt, 
+                    iterations=KDF_ITERATIONS))
                 
                 return lower_username, encryption_key
 
@@ -130,6 +138,7 @@ class PasswordManager:
         else:
             return "Login failed: Please check your inputs and try again."
 
+    # ... (new_save, get_save, delete_save, list_saved_logins methods remain the same) ...
     def new_save(self, service_name:str, service_username:str, service_password:str, user_username:str, encryption_key:bytes, save_data:bool = True, original_service_name=None, user_object:Optional[User]=None): # <-- Updated with Optional
         '''Creates a saved entry in the in-memory user using the in-memory encryption_key to encrypt the file.'''
 
@@ -238,7 +247,6 @@ class PasswordManager:
 
 
 
-
     def change_master_password(self, old_password:str, new_password:str, new_password1:str, user_username:str, old_encryption_key:bytes):
         '''Undergoes an intense cryptographic process to create a new password hash, confirm the old password's hash = the saved one, grab the old encryption key, craft a new one. 
         Decrypt every single password, and immediatly re-encrypt it using the new encryption key.'''
@@ -246,10 +254,13 @@ class PasswordManager:
         if user_object is not None: # <-- UPDATED check
 
             bytes_old_password = old_password.encode(encoding="utf-8")
-            bytes_salt = user_object.salt # type: ignore
+            auth_salt = user_object.salt # type: ignore
+            # Note: We get the old encryption_salt but it's not strictly necessary here, 
+            # as the new key will be generated with a brand new salt.
 
             # If the old password hash matches the user account's master password hash.
-            if hashify(password=bytes_old_password, salt=bytes_salt)[1] == user_object.hashed_password: # type: ignore
+            # Use the stored auth_salt to verify the old password
+            if hashify(password=bytes_old_password, auth_salt=auth_salt)[1] == user_object.hashed_password: # type: ignore
 
                 # If the new passwords entered are the same.
                 if new_password == new_password1:
@@ -257,12 +268,16 @@ class PasswordManager:
                     # Convert the new password to bytes.
                     bytes_new_password = new_password.encode(encoding="utf-8")
 
-                    # Generate a new password hash and a new salt.
-                    new_salt, new_password_hash = hashify(password=bytes_new_password)
+                    # Generate a new authentication salt, new hash, and a brand NEW encryption salt.
+                    new_auth_salt, new_password_hash, new_encryption_salt = hashify(password=bytes_new_password) # <-- MODIFIED: Call hashify without salts to generate new ones
 
                     # Generate a brand new encryption key from the bytes password.
-                    # FIX: Use the new_salt for key derivation
-                    new_encryption_key = base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(hash_name="sha256", password=bytes_new_password, salt=new_salt, iterations=250_000))
+                    # CRITICAL FIX: Use the new_encryption_salt for key derivation
+                    new_encryption_key = base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(
+                        hash_name="sha256", 
+                        password=bytes_new_password, 
+                        salt=new_encryption_salt, # <-- CRITICAL FIX: Use new_encryption_salt
+                        iterations=KDF_ITERATIONS))
 
                     # Re-encryption loop:
                     for service_name, credentials in user_object.passwords.items():
@@ -282,7 +297,8 @@ class PasswordManager:
 
                     # 3. Update the user object's credentials
                     user_object.hashed_password = new_password_hash
-                    user_object.salt = new_salt # <-- CRITICAL FIX: Update the user's salt
+                    user_object.salt = new_auth_salt # <-- CRITICAL FIX: Update the user's AUTHENTICATION salt
+                    user_object.encryption_salt = new_encryption_salt # <-- NEW: Update the user's ENCRYPTION salt
 
                     # 4. Save the final, fully updated object to the database
                     self.save_data(user_object)

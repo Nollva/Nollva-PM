@@ -132,6 +132,7 @@ def signup():
         return render_template("signup.html")
 
 
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -150,11 +151,6 @@ def list_passwords():
         encryption_key = session.get("encryption_key_b64", 0)
 
         password_list = pm.list_saved_logins(user_username=username, encryption_key=encryption_key)
-
-
-
-
-
 
         return render_template('passwords_content.html', password_list=password_list)
     else:
